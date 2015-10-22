@@ -1,0 +1,69 @@
+import sys
+import cx_Oracle
+import getpass
+
+CONN_STRING = ""
+
+def conToDB():
+    # get username
+    user = input("Username [%s]: " % getpass.getuser())
+    if not user:
+        user = getpass.getuser()
+
+    # get password
+    pw = getpass.getpass()
+
+    # the URL we are connecting to
+    global CONN_STRING
+    CONN_STRING = '' + user + '/' + pw + '@gwynne.cs.ualberta.ca:1521/CRS'
+    
+
+def execSql(sql):
+    con = cx_Oracle.connect(CONN_STRING)
+    curs = con.cursor()
+    curs.execute(sql)
+    con.commit()
+    rows = curs.fetchall()
+    return rows
+
+def sqlWithNoReturn(sql):
+    con = cx_Oracle.connect(CONN_SR
+
+
+def init():
+    print("welcome to our system")
+    print("1. Log in")
+    print("2. Register")
+    print("3. Exit")
+    print("please enter the number in front of the option");
+    option = input();
+    if option == "1":
+        logIn()
+    elif option == "2":
+        register()
+
+def logIn():
+    email = input("Email: ")
+    pwd = getpass.getpass()
+    sql = ("select * from users where email = '"
+           + email + "' and pass = '" + pwd + "'")
+    rs = execSql(sql)
+    if len(rs) == 0:
+        print("Log in failed")
+    else:
+        pass
+        #menu()
+
+def register():
+    try:
+        email = input("Email: ")
+        pwd = getpass.getpass()
+        sql = ("insert into users values('" + email
+               + "', '" + pwd + "', sysdate)")
+        rs = execSql(sql)
+    except:
+        print("register failed: email already exists")
+        
+if __name__ == "__main__":
+    conToDB()
+    init()
