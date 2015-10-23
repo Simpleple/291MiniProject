@@ -65,7 +65,7 @@ def logIn():
         sql = ("update users set last_login = sysdate where email = '"
                + email + "'")
         sqlWithNoReturn(sql)
-        menu()
+        menu(email)
 
 def register():
     try:
@@ -83,23 +83,88 @@ def register():
         print("register failed: email already exists")
         init()
         
-def menu():
+def menu(email):
+    sql = """
+    create view available_flights(flightno, dep_date, src,dst,
+          dep_time,arr_time,fare,seats, price) 
+    as 
+    select f.flightno, sf.dep_date, f.src, f.dst, 
+           f.dep_time+(trunc(sf.dep_date)-trunc(f.dep_time)), 
+           f.dep_time+(trunc(sf.dep_date)-trunc(f.dep_time))+
+           (f.est_dur/60+a2.tzone-a1.tzone)/24, fa.fare, 
+           fa.limit-count(tno), fa.price 
+    from flights f, flight_fares fa, sch_flights sf, bookings b,
+         airports a1, airports a2 
+    where f.flightno=sf.flightno and f.flightno=fa.flightno 
+          and f.src=a1.acode and f.dst=a2.acode 
+          and fa.flightno=b.flightno(+) and fa.fare=b.fare(+) 
+          and sf.dep_date=b.dep_date(+) 
+    group by f.flightno, sf.dep_date, f.src, f.dst, f.dep_time,
+             f.est_dur,a2.tzone, a1.tzone, fa.fare, fa.limit, 
+             fa.price 
+    having fa.limit-count(tno) > 0;
+    """
+    try:
+        sqlWithNoReturn(sql)
+    except:
+        pass
+    sql = """
+    create view good_connections (src,dst,dep_date,flightno1,
+          flightno2, layover,price) 
+    as
+    select a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno,
+           a2.dep_time-a1.arr_time, min(a1.price+a2.price)
+    from available_flights a1, available_flights a2
+    where a1.dst=a2.src and a1.arr_time +1.5/24 <=a2.dep_time 
+          and a1.arr_time +5/24 >=a2.dep_time
+    group by a1.src, a2.dst, a1.dep_date, a1.flightno, a2.flightno, 
+             a2.dep_time, a1.arr_time;
+    """
+    try:
+        sqlWithNoReturn(sql)
+    except:
+        pass
     print("===============================================")
-    print("1. Search For Flights")
-    print("2. List Existing Bookings")
+    print("1. Search For And Book Flights")
+    print("2. List Or Cancel Existing Bookings")
     print("3. Logout")
     option = input()
     if option == "1":
-        pass
+        search()
     elif option == "2":
         pass
     elif option == "3":
         init()
 
 def search():
-    sorce = input("Source: ")
-    dest = input("Destination: ")
-    
+    source = input("Source: ").upper()
+    dest = input("Destination: ").upper()
+    dep_date = input("Departure Date (yyyy-mm-dd): ")
+    sql = ("select * from available_flights where upper(src) = '"
+           + source + "' and upper(dst) = '" + dest
+           + "' and dep_time = to_date('" + dep_date 
+           + "', 'yyyy-dd-mm')")
+    print(sql)
+    rs = sqlWithReturn(sql)
+    if len(rs) != 0:
+        for row in rs:
+            print(row)
+    else:
+        sql = """
+        select * from available_flights af, airports a1, airports a2
+        where a1.name like '%{0}%' or a1.city like '%{0}%'
+              and a1.acode = af.src
+              and a2.name like '%{1}%' or a2.city like '%{1}%'
+              and a2.acode = af.dst
+              and af.dep_time = to_date('{2}', 'yyyy-dd-mm')
+        """.format(source, dest, dep_date)
+        print(sql)
+        rs = sqlWithReturn(sql)
+        if len(rs) != 0:
+            for row in rs:
+                print(row)
+        else:
+            print("no results")
 
 if __name__ == "__main__":
     conToDB()
