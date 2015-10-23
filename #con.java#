@@ -1,8 +1,0 @@
-import java.sql.*;
-
-class con {
-    public 
-    m_driverName = "oracle.jbdc.driver.OracleDriver";
-    Class drvClass = Class.forName(m_driverName);
-    DriverManager
-}
