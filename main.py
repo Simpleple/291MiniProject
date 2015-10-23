@@ -1,6 +1,7 @@
 import sys
 import cx_Oracle
 import getpass
+from existing import existing
 
 CONN_STRING = ""
 
@@ -78,12 +79,12 @@ def register():
                + "', '" + pwd + "', sysdate)")
         sqlWithNoReturn(sql)
         print("Successfully registed")
-        menu()
+        menu(email)
     except:
         print("register failed: email already exists")
         init()
         
-def menu():
+def menu(email):
     print("===============================================")
     print("1. Search For Flights")
     print("2. List Existing Bookings")
@@ -92,7 +93,7 @@ def menu():
     if option == "1":
         pass
     elif option == "2":
-        pass
+        existing(email)
     elif option == "3":
         init()
 
