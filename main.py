@@ -2,7 +2,7 @@ import sys
 import cx_Oracle
 import getpass
 #from existing import *
-from search import *
+import search
 
 def conToDB():
     # get username
@@ -134,7 +134,7 @@ def menu(email, CONN_STRING):
     print("3. Logout")
     option = input()
     if option == "1":
-        search(CONN_STRING)
+        search.search(email, CONN_STRING)
     elif option == "2":
         pass
     elif option == "3":
