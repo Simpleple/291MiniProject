@@ -1,7 +1,7 @@
 import sys
 import cx_Oracle
 import getpass
-from existing import existing
+import existing
 
 CONN_STRING = ""
 
@@ -19,7 +19,7 @@ def conToDB():
     CONN_STRING = '' + user + '/' + pw + '@gwynne.cs.ualberta.ca:1521/CRS'
     
 
-def sqlWithReturn(sql):
+def sqlWithReturn(sql, CONN_STRING):
     con = cx_Oracle.connect(CONN_STRING)
     curs = con.cursor()
     curs.execute(sql)
@@ -27,6 +27,16 @@ def sqlWithReturn(sql):
     rows = curs.fetchall()
     con.close()
     return rows
+
+def sqlWithReturnColumn(sql, CONN_STRING):
+    con = cx_Oracle.connect(CONN_STRING)
+    curs = con.cursor()
+    curs.execute(sql)
+    con.commit()
+    rows = curs.fetchall()
+    columns = curs.description
+    con.close()
+    return rows, columns
 
 def sqlWithNoReturn(sql):
     con = cx_Oracle.connect(CONN_STRING)
@@ -58,7 +68,7 @@ def logIn():
     pwd = getpass.getpass()
     sql = ("select * from users where email = '"
            + email + "' and pass = '" + pwd + "'")
-    rs = sqlWithReturn(sql)
+    rs = sqlWithReturn(sql, CONN_STRING)
     if len(rs) == 0:
         print("Log in failed")
         init()
@@ -66,7 +76,7 @@ def logIn():
         sql = ("update users set last_login = sysdate where email = '"
                + email + "'")
         sqlWithNoReturn(sql)
-        menu(email)
+        menu(email, CONN_STRING)
 
 def register():
     try:
@@ -79,12 +89,12 @@ def register():
                + "', '" + pwd + "', sysdate)")
         sqlWithNoReturn(sql)
         print("Successfully registed")
-        menu(email)
+        menu(email, CONN_STRING)
     except:
         print("register failed: email already exists")
         init()
         
-def menu(email):
+def menu(email, CONN_STRING):
     sql = """
     create view available_flights(flightno, dep_date, src,dst,
           dep_time,arr_time,fare,seats, price) 
@@ -133,7 +143,7 @@ def menu(email):
     if option == "1":
         search()
     elif option == "2":
-        existing(email)
+        existing.existing(email, CONN_STRING)
     elif option == "3":
         init()
 
@@ -146,7 +156,7 @@ def search():
            + "' and dep_time = to_date('" + dep_date 
            + "', 'yyyy-dd-mm')")
     print(sql)
-    rs = sqlWithReturn(sql)
+    rs = sqlWithReturn(sql, CONN_STRING)
     if len(rs) != 0:
         for row in rs:
             print(row)
@@ -160,7 +170,7 @@ def search():
               and af.dep_time = to_date('{2}', 'yyyy-dd-mm')
         """.format(source, dest, dep_date)
         print(sql)
-        rs = sqlWithReturn(sql)
+        rs = sqlWithReturn(sql, CONN_STRING)
         if len(rs) != 0:
             for row in rs:
                 print(row)
