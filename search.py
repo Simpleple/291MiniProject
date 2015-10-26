@@ -42,6 +42,10 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
     order by stops, price asc)
     """.format(source, dest, dep_date)
 
+    # this causes an infinite loop because the prompts for info don't
+    # occur in this function. It continually prints "no match found"
+    # forever. I think it would be better to call some other function
+    # in the except case.
     if sortBy == "1":
         try:
             rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)

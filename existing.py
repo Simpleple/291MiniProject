@@ -75,11 +75,11 @@ def cancel(existing_flights, email, CONN_STRING):
         deleteFromBookings = """delete from bookings
         where tno = {0}
 	""".format(tno)
-	main.sqlWithNoReturn(deleteFromBookings, CONN_STRING)
+        main.sqlWithNoReturn(deleteFromBookings, CONN_STRING)
         deleteFromTickets = """delete from tickets
         where tno = {0}
         """.format(tno)
-	main.sqlWithNoReturn(deleteFromTickets, CONN_STRING)
+        main.sqlWithNoReturn(deleteFromTickets, CONN_STRING)
     elif int(option) == len(existing_flights)+1:
         cancel(existing_flights, email)
     elif int(option) == len(existing_flights)+2:
