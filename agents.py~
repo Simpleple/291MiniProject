@@ -1,0 +1,27 @@
+import main
+
+def recordDepart(email, CONN_STRING):
+    flightno = input("Please enter the flight number: ")
+    dep_date = input("Please enter the departure date(DD/MM/YYYY): ")
+    act_dep_time = input("Please enter the departure time(DD/MM/YYYY HH24:MI): ")
+    sql = "update sch_flights set act_dep_time = to_date('{0}', 'DD/MM/YYYY HH24:MI') where flightno = '{1}' and to_char(dep_date, 'DD/MM/YYYY') = '{2}'".format(act_dep_time, flightno, dep_date)
+    #try:
+    main.sqlWithNoReturn(sql, CONN_STRING)
+    #except:
+    print("fail to record")
+    main.menu(email, CONN_STRING)
+    print("success to record")
+    main.menu(email, CONN_STRING)
+
+def recordArr(email, CONN_STRING):
+    flightno = input("Please enter the flight number: ")
+    dep_date = input("Please enter the departure date(DD/MM/YYYY): ")
+    act_arr_time = input("Please enter the arrival time(DD/MM/YYYY HH24:MI): ")
+    sql = "update sch_flights set act_arr_time = to_date('{0}', 'DD/MM/YYYY HH24:MI') where flightno = '{1}' and to_char(dep_date, 'DD/MM/YYYY') = '{2}'".format(act_arr_time, flightno, dep_date)
+    try:
+        main.sqlWithNoReturn(sql, CONN_STRING)
+    except:
+        print("fail to record")
+        main.menu(email, CONN_STRING)
+    print("success to record")
+    main.menu(email, CONN_STRING)
