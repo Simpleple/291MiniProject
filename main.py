@@ -6,6 +6,7 @@ import roundtrip
 import agents
 import search
 
+# connect to the database
 def conToDB():
     # get username
     user = input("Username [%s]: " % getpass.getuser())
@@ -23,7 +24,8 @@ def conToDB():
         print("Wrong username/password")
         conToDB()
     init(CONN_STRING)
-    
+
+# execute an sql command and return the rows and description of the columns
 def sqlWithReturnDesc(sql, CONN_STRING):
     con = cx_Oracle.connect(CONN_STRING)
     curs = con.cursor()
@@ -34,6 +36,7 @@ def sqlWithReturnDesc(sql, CONN_STRING):
     con.close()
     return rows, desc
 
+# execute an sql command and return the rows
 def sqlWithReturn(sql, CONN_STRING):
     con = cx_Oracle.connect(CONN_STRING)
     curs = con.cursor()
@@ -43,16 +46,7 @@ def sqlWithReturn(sql, CONN_STRING):
     con.close()
     return rows
 
-def sqlWithReturnColumn(sql, CONN_STRING):
-    con = cx_Oracle.connect(CONN_STRING)
-    curs = con.cursor()
-    curs.execute(sql)
-    con.commit()
-    rows = curs.fetchall()
-    columns = curs.description
-    con.close()
-    return rows, columns
-
+# execute an sql command without returning anything
 def sqlWithNoReturn(sql, CONN_STRING):
     con = cx_Oracle.connect(CONN_STRING)
     curs = con.cursor()
@@ -60,6 +54,7 @@ def sqlWithNoReturn(sql, CONN_STRING):
     con.commit()
     con.close()
 
+# initial menu
 def init(CONN_STRING):
     print("===============================================")
     print("welcome to our system")
@@ -73,11 +68,12 @@ def init(CONN_STRING):
     elif option == "2":
         register(CONN_STRING)
     elif option == "3":
-        return
+        sys.exit()
     else:
         print("Incorrect option, please enter correct number.")
         init(CONN_STRING)
 
+# the user can login with an existing profile in the database
 def logIn(CONN_STRING):
     email = input("Email: ")
     pwd = getpass.getpass()
@@ -95,6 +91,7 @@ def logIn(CONN_STRING):
         print("Log in success")
         menu(email, CONN_STRING)
 
+# register a new email and password
 def register(CONN_STRING):
     try:
         email = input("Email: ")
@@ -113,6 +110,13 @@ def register(CONN_STRING):
     except:
         print("register failed: email already exists")
         init(CONN_STRING)
+        
+# logout and record the last login time
+def logout(email, CONN_STRING):
+    sql = ("update users set last_login = sysdate where email = '"
+           + email + "'")
+    sqlWithNoReturn(sql, CONN_STRING)
+    init(CONN_STRING)   
         
 def menu(email, CONN_STRING):
     sql = """
@@ -166,25 +170,22 @@ def menu(email, CONN_STRING):
     print("3. Logout")
     sql = "select * from airline_agents where email = '{0}'".format(email)
     isAgent = sqlWithReturn(sql, CONN_STRING)
+    print("4. Search For Round Trip Flights")    
     if len(isAgent) > 0:
-        print("4. Record a flight departure")
-        print("5. Record a flight arrival")
-    print("6. Search For Round Trip Flights")
+        print("5. Record a flight departure")
+        print("6. Record a flight arrival")
     option = input()
-    if len(isAgent) > 0 and option == "4":
-        agents.recordDepart(email, CONN_STRING)
     if len(isAgent) > 0 and option == "5":
+        agents.recordDepart(email, CONN_STRING)
+    if len(isAgent) > 0 and option == "6":
         agents.recordArr(email, CONN_STRING)
     if option == "1":
         search.search(email, CONN_STRING)
     elif option == "2":
         existing.existing(email, CONN_STRING)
     elif option == "3":
-        sql = ("update users set last_login = sysdate where email = '"
-               + email + "'")
-        sqlWithNoReturn(sql, CONN_STRING)
-        init(CONN_STRING)
-    elif option == "6":
+        logout(email, CONN_STRING)
+    elif option == "4":
         roundtrip.roundTrip(email, CONN_STRING)
     else:
         print("not a valid number")

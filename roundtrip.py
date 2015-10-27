@@ -20,8 +20,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
            t1.price + t2.price as price
     from
     (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -38,8 +38,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
     where to_char(dep_date,'DD/MM/YYYY')='{2}' and src='{0}' and dst='{1}'
     order by price asc)) t1,
     (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -68,8 +68,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
            t1.price + t2.price as price
     from
     (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -86,8 +86,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
     where to_char(dep_date,'DD/MM/YYYY')='{2}' and src='{0}' and dst='{1}'
     order by price asc)) t1,
     (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -123,7 +123,7 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
             print(row[0], end=" ")
         print("")
         for row in rs:
-            print(i," ",row)
+            print(str(i)+".",row)
             i+=1
     else:
         sortByPrice = """
@@ -137,8 +137,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
            t1.price + t2.price as price
         from airports a1, airports a2,
         (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -155,8 +155,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
         where to_char(dep_date,'DD/MM/YYYY')='{2}'
         order by price asc)) t1,
         (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -191,8 +191,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
            t1.price + t2.price as price
         from airports a1, airports a2,
         (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -209,8 +209,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
         where to_char(dep_date,'DD/MM/YYYY')='{2}'
         order by price asc)) t1,
         (select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
-           to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
-           to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
+           to_char(dep_time, 'HH24:MI') as dep_time,
+           to_char(arr_time, 'HH24:MI') as arr_time,
            stops, 60 * layover as layover
            , price, fare1, fare2,
            (seats1 + seats2) / 2 - abs(seats1 - seats2) / 2 as seats
@@ -244,14 +244,14 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
                 print(row[0], end=" ")
             print("")
             for row in rs:
-                print(i, " ", row)
+                print(str(i)+".", row)
                 i+=1
         else:
             print("no results")
-            roundTrip(email, CONN_STRING)
-    print(len(rs)+1, " ", "Sort by number of connections")
-    print(len(rs)+2, " ", "Make a booking")
-    print(len(rs)+3, " ", "Go back to menu")
+            main.menu(email, CONN_STRING)
+    print(str(len(rs)+1)+".", "Sort by number of connections")
+    print(str(len(rs)+2)+".", "Make a booking")
+    print(str(len(rs)+3)+".", "Go back to menu")
     option = input("Enter the number of an option: ")
     try:
         optNum = int(option)
