@@ -43,17 +43,9 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
     """.format(source, dest, dep_date)
 
     if sortBy == "1":
-        try:
-            rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
-        except:
-            print("no match found")
-            printInfo(email, CONN_STRING, source, dest, dep_date, "1")
+        rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
     else:
-        try:
-            rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
-        except:
-            print("no match found")
-            printInfo(email, CONN_STRING, source, dest, dep_date, "1")
+        rs, desc = main.sqlWithReturnDesc(sortByStops, CONN_STRING)
     if len(rs) != 0:
         i = 1
         for row in desc:
@@ -65,10 +57,10 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
     else:
         sortByPrice = """
         select x.flightno1, x.flightno2, x.src, x.dst, to_char(x.dep_date)
-               as dep_date
+               as dep_date,
                to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
                to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
-               x.stops, 60 * x.layover as layover, x.price, x.fare1, x.fare2
+               x.stops, 60 * x.layover as layover, x.price, x.fare1, x.fare2,
                (x.seats1 + x.seats2) / 2 - abs(x.seats1 - x.seats2)/2 as seats
         from airports a1, airports a2,
             (select flightno1, flightno2, src, dst, dep_time, arr_time,
@@ -89,14 +81,14 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
               and a1.acode = x.src and a2.acode = x.dst
               and (lower(a2.city) like '%{1}%' or 
               lower(a2.name) like '%{1}%')
-        order by price asc
+        order by price asc        
         """.format(source.lower(), dest.lower(), dep_date)
         sortByStops = """
         select x.flightno1, x.flightno2, x.src, x.dst, to_char(x.dep_date)
-               as dep_date
+               as dep_date,
                to_char(dep_time, 'DD-MON-YYYY HH24:MI') as dep_time,
                to_char(arr_time, 'DD-Mon-YYYY HH24:Mi') as arr_time,
-               x.stops, 60 * x.layover as layover, x.price, x.fare1, x.fare2
+               x.stops, 60 * x.layover as layover, x.price, x.fare1, x.fare2,
                (x.seats1 + x.seats2) / 2 - abs(x.seats1 - x.seats2)/2 as seats
         from airports a1, airports a2,
             (select flightno1, flightno2, src, dst, dep_time, arr_time,
@@ -133,14 +125,14 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
                 i+=1
         else:
             print("no results")
+            search(email, CONN_STRING)
     print(len(rs)+1, " ", "Sort by number of connections")
     print(len(rs)+2, " ", "Make a booking")
     print(len(rs)+3, " ", "Go back to menu")
-    print(len(rs)+4, " ", "Log out")
     option = input("Enter the number of an option: ")
     try:
         optNum = int(option)
-        if optNum<0 or optNum>len(rs)+4:
+        if optNum<0 or optNum>len(rs)+3:
             print("Not valid number")
         elif optNum == len(rs)+1:
             printInfo(email, CONN_STRING, source, dest, dep_date, "2")
@@ -153,8 +145,6 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
             booking(email, CONN_STRING, flightno, rs, dep_date, source, dest)
         elif optNum == len(rs)+3:
             main.menu(email, CONN_STRING)
-        elif optNum == len(rs)+4:
-            return
         else:
             print("Not valid number")
             printInfo(email, CONN_STRING, source, dest, dep_date, "1")
@@ -171,7 +161,7 @@ def booking(email, CONN_STRING, flightno, rs, dep_date, source, dest):
     maxTno = main.sqlWithReturn(sql, CONN_STRING)[0][0]
     sql = "select name from passengers where email = '{0}'".format(email)
     name = main.sqlWithReturn(sql, CONN_STRING)[0][0]
-    sql = "insert into tickets values({0}, '{1}', '{2}', '{3}')".format(maxTno+1, name, email, row[-1])
+    sql = "insert into tickets values({0}, '{1}', '{2}', '{3}')".format(maxTno+1, name, email, row[-4])
     main.sqlWithNoReturn(sql, CONN_STRING)
     sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[0], row[-3], dep_date)
     main.sqlWithNoReturn(sql, CONN_STRING)
@@ -185,7 +175,4 @@ def search(email, CONN_STRING):
     dest = input("Destination: ").upper()
     dep_date = input("Departure Date (DD/MM/YYYY): ")
     printInfo(email, CONN_STRING, source, dest, dep_date)
-    
-
-
     

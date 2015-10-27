@@ -1,6 +1,7 @@
 import sys
 import cx_Oracle
 import getpass
+import roundtrip
 import agents
 import search
 
@@ -15,6 +16,11 @@ def conToDB():
 
     # the URL we are connecting to
     CONN_STRING = '' + user + '/' + pw + '@gwynne.cs.ualberta.ca:1521/CRS'
+    try:
+        rs = sqlWithReturnDesc("select * from users", CONN_STRING)
+    except:
+        print("Wrong username/password")
+        conToDB()
     init(CONN_STRING)
     
 def sqlWithReturnDesc(sql, CONN_STRING):
@@ -56,7 +62,7 @@ def init(CONN_STRING):
     elif option == "2":
         register(CONN_STRING)
     elif option == "3":
-        pass
+        return
     else:
         print("Incorrect option, please enter correct number.")
         init(CONN_STRING)
@@ -152,6 +158,7 @@ def menu(email, CONN_STRING):
     if len(isAgent) > 0:
         print("4. Record a flight departure")
         print("5. Record a flight arrival")
+    print("6. Search For Round Trip Flights")
     option = input()
     if len(isAgent) > 0 and option == "4":
         agents.recordDepart(email, CONN_STRING)
@@ -166,6 +173,8 @@ def menu(email, CONN_STRING):
                + email + "'")
         sqlWithNoReturn(sql, CONN_STRING)
         init(CONN_STRING)
+    elif option == "6":
+        roundtrip.roundTrip(email, CONN_STRING)
     else:
         print("not a valid number")
         menu(email, CONN_STRING)
