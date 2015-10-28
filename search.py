@@ -100,7 +100,7 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
         """.format(source.lower(), dest.lower(), dep_date)
         # query that selects suitable flights sorted by stops then price and 
         # similar aiport name or city name 
-       sortByStops = """
+        sortByStops = """
         select x.flightno1, x.flightno2, x.src, x.dst, to_char(x.dep_date)
                as dep_date,
                to_char(dep_time, 'HH24:MI') as dep_time,
@@ -179,7 +179,7 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
             selected = rs[flightno-1]
             i = 0
             for row in newRs:
-                if row == selected:
+                if row[0] == selected[0] and row[1] == selected[1] and row[-3] == selected[-3] and row[-2] == selected[-2]:
                     break
                 else:
                     i += 1

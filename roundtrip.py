@@ -306,7 +306,7 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
             selected = rs[flightno-1]
             i = 0
             for row in newRs:
-                if row == selected:
+                if row[0] == selected[0] and row[1] == selected[1] and row[8] == selected[8] and row[9] == selected[9] and row[10] == selected[10] and row[11] == selected[11] and row[-5] == selected[-5] and row[-4] == selected[-4]:
                     break
                 else:
                     i += 1
