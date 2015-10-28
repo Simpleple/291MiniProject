@@ -229,6 +229,7 @@ def booking(email, CONN_STRING, flightno, rs, dep_date, source, dest):
     # record the second flight booking information if there is one
     if row[1] is not None:
         sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[1], row[-2], dep_date)
+        main.sqlWithNoReturn(sql, CONN_STRING)
     # print success message and ticket number and go back
     print("success, your ticket number is ", maxTno+1)
     return printInfo(email, CONN_STRING, source, dest, dep_date, "1")
