@@ -169,3 +169,7 @@ insert into airline_agents values ('davood@ggg.com','Davood Rafiei');
 insert into airline_agents values ('david@ggg.com','David Raft');
 insert into airline_agents values ('gandalf@wizard.com','Gandalf Grey');
 insert into airline_agents values ('ralph@ggg.com','Ralph Rafiei');
+
+insert into flights values ('AC030', 'YVR', 'YEG', to_date('12:00', 'HH24:MI'), 200);
+insert into sch_flights values ('AC030', to_date('20/10/2015', 'DD/MM/YYYY'), null, null);
+insert into flight_fares values ('AC030', 'Q', 10, 300, 0);
