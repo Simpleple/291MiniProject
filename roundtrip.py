@@ -14,6 +14,8 @@ def roundTrip(email, CONN_STRING):
 # information and provide users with options of sorting the results
 # in number of connections, make a booking and go back to main menu
 def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy="1"):
+    # query that selects suitable round trip flights sorted by price and
+    # airport code
     sortByPrice = """
     select t1.flightno1, t1.flightno2, t1.src, t1.dst, t1.dep_date, 
            t1.dep_time, t1.arr_time, t1.layover, t1.fare1,
@@ -62,6 +64,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
     order by price asc)) t2
     order by price asc
     """.format(source, dest, dep_date, ret_date)
+    # query that selects suitable round trip flights sorted by first stops
+    # then price and airport code
     sortByStops = """
     select t1.flightno1, t1.flightno2, t1.src, t1.dst, t1.dep_date, 
            t1.dep_time, t1.arr_time, t1.layover, t1.fare1,
@@ -110,6 +114,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
     order by price asc)) t2
     order by stops, price asc
     """.format(source, dest, dep_date, ret_date)
+
+    # use the corresponding query to sort the result
     if sortBy == "1":
         try:
             rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
@@ -122,6 +128,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
         except:
             print("no match found")
             return printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, "1")
+
+    # if there is result print column name and rows
     if len(rs) != 0:
         i = 1
         for row in desc:
@@ -130,7 +138,10 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
         for row in rs:
             print(str(i)+".",row)
             i+=1
+    # if no result then use implicit search
     else:
+        # query that selects suitable round trip flights sorted by price and
+        # similar aiport name or city name
         sortByPrice = """
         select t1.flightno1, t1.flightno2, t1.src, t1.dst, t1.dep_date, 
            t1.dep_time, t1.arr_time, t1.layover, t1.fare1,
@@ -187,6 +198,8 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
               and t1.src = t2.dst and t1.dst = t2.src
         order by price asc
         """.format(source.lower(), dest.lower(), dep_date, ret_date)
+        # query that selects suitable round trip flights sorted by stops
+        # then price and similar aiport name or city name
         sortByStops = """
         select t1.flightno1, t1.flightno2, t1.src, t1.dst, t1.dep_date, 
            t1.dep_time, t1.arr_time, t1.layover, t1.fare1,
@@ -247,6 +260,7 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
             rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
         else:
             rs, desc = main.sqlWithReturnDesc(sortByStops, CONN_STRING)
+        # print searching result if exists
         if len(rs) != 0:
             i = 1
             for row in desc:
@@ -255,12 +269,17 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
             for row in rs:
                 print(str(i)+".", row)
                 i+=1
+        # print error message and go back to menu
         else:
             print("no results")
             return main.menu(email, CONN_STRING)
+
+    # print options
     print(str(len(rs)+1)+".", "Sort by number of connections")
     print(str(len(rs)+2)+".", "Make a booking")
     print(str(len(rs)+3)+".", "Go back to menu")
+
+    # get options and call corresponding method
     option = input("Enter the number of an option: ")
     try:
         optNum = int(option)
@@ -269,13 +288,21 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
         elif optNum == len(rs)+1:
             return printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, "2")
         elif optNum == len(rs)+2:
+            # get user selected number of flight
             flightno = int(input("Enter the number before the flight you want to book: "))
+            # go back to start of function if flightno is less than one
+            # to prevent negative indexing issues
             if flightno < 1:
                 return printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy)
+                
+            # get a new result set of current data
             if sortBy == "1":
                 newRs = main.sqlWithReturn(sortByPrice, CONN_STRING)
             else:
                 newRs = main.sqlWithReturn(sortByStops, CONN_STRING)
+
+            # compare each row in new result set with user selected row and
+            # record the index
             selected = rs[flightno-1]
             i = 0
             for row in newRs:
@@ -283,8 +310,11 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
                     break
                 else:
                     i += 1
+            # if not found, print error message and go back
             if i == len(newRs):
                 print("tickets for your selected flight has run out")
+                return printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy)
+            # call booking function
             return roundBooking(email, CONN_STRING, i+1, newRs, dep_date, ret_date, source, dest)
         elif optNum == len(rs)+3:
             return main.menu(email, CONN_STRING)
@@ -299,6 +329,9 @@ def printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date, sortBy=
 # for passenger information if user is not registered in passenger
 # table
 def roundBooking(email, CONN_STRING, flightno, rs, dep_date, ret_date, source, dest):
+
+    # if user is not a passenger prompt user to enter information
+    # and add it to passenger table
     sql = "select * from passengers where email = '{0}'".format(email)
     isPassenger = main.sqlWithReturn(sql, CONN_STRING)
     if len(isPassenger) == 0:
@@ -308,22 +341,28 @@ def roundBooking(email, CONN_STRING, flightno, rs, dep_date, ret_date, source, d
         sql = "insert into passengers values('{0}', '{1}', '{2}')".format(email, name, country)
         main.sqlWithNoReturn(sql, CONN_STRING)
     row = rs[flightno-1]
-    if row[-2] <= 0:
-        print("tickets not exists, please choose another flight")
-        return printInfo(email, CONN_STRING, source, dest, dep_date, "1")
+
+    # get ticket number to be created
     sql = "select max(tno) from tickets"
     maxTno = main.sqlWithReturn(sql, CONN_STRING)[0][0]
+    # get name of passenger
     sql = "select name from passengers where email = '{0}'".format(email)
     name = main.sqlWithReturn(sql, CONN_STRING)[0][0]
+    # create a ticker for this purchase
     sql = "insert into tickets values({0}, '{1}', '{2}', '{3}')".format(maxTno+1, name, email, row[-1])
     main.sqlWithNoReturn(sql, CONN_STRING)
+    # record the first flight booking information
     sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[0], row[8], dep_date)
     main.sqlWithNoReturn(sql, CONN_STRING)
+    # record the first return flight booking information
     sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[10], row[-5], ret_date)
     main.sqlWithNoReturn(sql, CONN_STRING)
+    # record the second booking information if there is one
     if row[1] is not None:
         sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[1], row[9], dep_date)
+    # record the second return booking information if there is one
     if row[11] is not None:
         sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[11], row[-4], ret_date)
+    # print success message and ticket number and go back
     print("success, your ticket number is ", maxTno+1)
     return printRoundInfo(email, CONN_STRING, source, dest, dep_date, ret_date)

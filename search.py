@@ -5,6 +5,8 @@ import main
 # the results in number of connections, make a booking and go back
 # to main menu
 def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
+    # query that selects suitable flights sorted by price and 
+    # airport code
     sortByPrice = """
     select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
            to_char(dep_time, 'HH24:MI') as dep_time,
@@ -25,6 +27,8 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
     where to_char(dep_date,'DD/MM/YYYY')='{2}' and src='{0}' and dst='{1}'
     order by price asc)
     """.format(source, dest, dep_date)
+    # query that selects suitable flights sorted by first stops
+    # then price and airport code
     sortByStops = """
     select flightno1, flightno2, src, dst, to_char(dep_date) as dep_date,
            to_char(dep_time, 'HH24:MI') as dep_time,
@@ -46,14 +50,12 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
     order by stops, price asc)
     """.format(source, dest, dep_date)
 
-    # this causes an infinite loop because the prompts for info don't
-    # occur in this function. It continually prints "no match found"
-    # forever. I think it would be better to call some other function
-    # in the except case.
+    # use the corresponding query to sort the result
     if sortBy == "1":
         rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
     else:
         rs, desc = main.sqlWithReturnDesc(sortByStops, CONN_STRING)
+    # if there is result print column name and rows
     if len(rs) != 0:
         i = 1
         for row in desc:
@@ -62,7 +64,10 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
         for row in rs:
             print(str(i)+".",row)
             i+=1
+    # if no result then use implicit search
     else:
+        # query that selects suitable flights sorted by price and 
+        # similar aiport name or city name
         sortByPrice = """
         select x.flightno1, x.flightno2, x.src, x.dst, to_char(x.dep_date)
                as dep_date,
@@ -93,7 +98,9 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
               or lower(a2.name) like '%{1}%'))
         order by price asc        
         """.format(source.lower(), dest.lower(), dep_date)
-        sortByStops = """
+        # query that selects suitable flights sorted by stops then price and 
+        # similar aiport name or city name 
+       sortByStops = """
         select x.flightno1, x.flightno2, x.src, x.dst, to_char(x.dep_date)
                as dep_date,
                to_char(dep_time, 'HH24:MI') as dep_time,
@@ -127,6 +134,7 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
             rs, desc = main.sqlWithReturnDesc(sortByPrice, CONN_STRING)
         else:
             rs, desc = main.sqlWithReturnDesc(sortByStops, CONN_STRING)
+        # print searching result if exists
         if len(rs) != 0:
             i = 1
             for row in desc:
@@ -135,13 +143,17 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
             for row in rs:
                 print(str(i)+".", row)
                 i+=1
+        # print error message and go back to menu
         else:
             print("no results")
-            main.menu(email, CONN_STRING)
-            return
+            return main.menu(email, CONN_STRING)
+            
+    # print options
     print(str(len(rs)+1)+".", "Sort by number of connections")
     print(str(len(rs)+2)+".", "Make a booking")
     print(str(len(rs)+3)+".", "Go back to menu")
+
+    # get options and call corresponding method
     option = input("Enter the number of an option: ")
     try:
         optNum = int(option)
@@ -150,13 +162,20 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
         elif optNum == len(rs)+1:
             return printInfo(email, CONN_STRING, source, dest, dep_date, "2")
         elif optNum == len(rs)+2:
+            # get user selected number of flight
             flightno = int(input("Enter the number before the flight you want to book: "))
+            # go back to start of function if flightno is less than one
+            # to prevent negative indexing issues
             if flightno < 1:
                 return printInfo(email, CONN_STRING, source, dest, dep_date, sortBy)
+            # get a new result set of current data
             if sortBy == "1":
                 newRs = main.sqlWithReturn(sortByPrice, CONN_STRING)
             else:
                 newRs = main.sqlWithReturn(sortByStops, CONN_STRING)
+
+            # compare each row in new result set with user selected row and
+            # record the index
             selected = rs[flightno-1]
             i = 0
             for row in newRs:
@@ -164,9 +183,11 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
                     break
                 else:
                     i += 1
+            # if not found, print error message and go back
             if i == len(newRs):
                 print("tickets for your selected flight has run out")
                 return printInfo(email, CONN_STRING, source, dest, dep_date, sortBy)
+            # call booking function
             return booking(email, CONN_STRING, i+1, newRs, dep_date, source, dest)
         elif optNum == len(rs)+3:
             return main.menu(email, CONN_STRING)
@@ -180,6 +201,9 @@ def printInfo(email, CONN_STRING, source, dest, dep_date, sortBy="1"):
 # allow the user to make a booking. prompt the user for information
 # if he is not a passenger yet.
 def booking(email, CONN_STRING, flightno, rs, dep_date, source, dest):
+
+    # if user is not a passenger prompt user to enter information 
+    # and add it to passenger table
     sql = "select * from passengers where email = '{0}'".format(email)
     isPassenger = main.sqlWithReturn(sql, CONN_STRING)
     if len(isPassenger) == 0:
@@ -189,19 +213,23 @@ def booking(email, CONN_STRING, flightno, rs, dep_date, source, dest):
         sql = "insert into passengers values('{0}', '{1}', '{2}')".format(email, name, country)
         main.sqlWithNoReturn(sql, CONN_STRING)
     row = rs[flightno-1]
-    if row[-1] <= 0:
-        print("tickets not exists, please choose another flight")
-        return printInfo(email, CONN_STRING, source, dest, dep_date, "1")
+
+    # get ticket number to be created
     sql = "select max(tno) from tickets"
     maxTno = main.sqlWithReturn(sql, CONN_STRING)[0][0]
+    # get name of the passenger
     sql = "select name from passengers where email = '{0}'".format(email)
     name = main.sqlWithReturn(sql, CONN_STRING)[0][0]
+    # create a ticket for this purchase
     sql = "insert into tickets values({0}, '{1}', '{2}', '{3}')".format(maxTno+1, name, email, row[-4])
     main.sqlWithNoReturn(sql, CONN_STRING)
+    # record the flight booking information
     sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[0], row[-3], dep_date)
     main.sqlWithNoReturn(sql, CONN_STRING)
+    # record the second flight booking information if there is one
     if row[1] is not None:
         sql = "insert into bookings values({0}, '{1}', '{2}', to_date('{3}', 'DD/MM/YYYY'), null)".format(maxTno+1, row[1], row[-2], dep_date)
+    # print success message and ticket number and go back
     print("success, your ticket number is ", maxTno+1)
     return printInfo(email, CONN_STRING, source, dest, dep_date, "1")
 
