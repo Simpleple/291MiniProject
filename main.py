@@ -68,7 +68,7 @@ def init(CONN_STRING):
     elif option == "2":
         register(CONN_STRING)
     elif option == "3":
-        sys.exit()
+        return
     else:
         print("Incorrect option, please enter correct number.")
         init(CONN_STRING)
@@ -110,13 +110,6 @@ def register(CONN_STRING):
     except:
         print("register failed: email already exists")
         init(CONN_STRING)
-        
-# logout and record the last login time
-def logout(email, CONN_STRING):
-    sql = ("update users set last_login = sysdate where email = '"
-           + email + "'")
-    sqlWithNoReturn(sql, CONN_STRING)
-    init(CONN_STRING)   
         
 def menu(email, CONN_STRING):
     sql = """
@@ -184,7 +177,11 @@ def menu(email, CONN_STRING):
     elif option == "2":
         existing.existing(email, CONN_STRING)
     elif option == "3":
-        logout(email, CONN_STRING)
+        sql = ("update users set last_login = sysdate where email = '"
+              + email + "'")
+        sqlWithNoReturn(sql, CONN_STRING)
+        init(CONN_STRING)
+	#logout(email, CONN_STRING)
     elif option == "4":
         roundtrip.roundTrip(email, CONN_STRING)
     else:

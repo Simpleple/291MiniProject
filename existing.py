@@ -22,7 +22,7 @@ def existing(email, CONN_STRING):
     except:
         # if it can't tell the user and return to the main menu
         print("Something has gone wrong while trying to display your bookings")
-        main.menu(email, CONN_STRING)
+        return main.menu(email, CONN_STRING)
         
     # if it can, print them for the user
     if len(existing_flights) > 0:
@@ -51,27 +51,27 @@ number in front of cancel to enter cancel mode""")
             option = int(option)
         except:
             print('Your selection must be one of the integers listed above')
-            existing(email, CONN_STRING)
+            return existing(email, CONN_STRING)
         
         # if they selected one of the row numbers, print more information about
         # that booking
         if 0 < option <= len(existing_flights):
-            more_info(existing_flights[int(option)-1][0], CONN_STRING, email)
+            return more_info(existing_flights[int(option)-1][0], CONN_STRING, email)
         # if they selected the cancel option, call the cancel function
         elif option == len(existing_flights)+1:
-            cancel(existing_flights, email, CONN_STRING)
+            return cancel(existing_flights, email, CONN_STRING)
         # if they selected the menu, go to the menu 
         elif option == len(existing_flights)+2:
-            main.menu(email, CONN_STRING)
+            return main.menu(email, CONN_STRING)
         # if they did not select one of the options above, it is an invalid 
         # choice
         else:
             print("Invalid choice, try again")
-            existing(email, CONN_STRING)
+            return existing(email, CONN_STRING)
     # tell the user if they have no flights    
     else:
         print("You have no bookings")
-        main.menu(email, CONN_STRING)
+        return main.menu(email, CONN_STRING)
 
 # presents all info about a booking the user selects and returns it to the
 # menu
@@ -101,12 +101,12 @@ def more_info(tno, CONN_STRING, email):
     except:
         # if it doesn't work, tell the user
         print("Something has gone wrong with accessing the requested info")
-        main.menu(email, CONN_STRING)
+        return main.menu(email, CONN_STRING)
     # if it does, print all of the information and go back to the menu
     for row in info:
         for index in range(0, len(row)):
             print(column[index][0] + ': ', end=""), print(row[index])
-    main.menu(email, CONN_STRING)
+    return main.menu(email, CONN_STRING)
 
 # a mode in which the user can select one of their displayed bookings to cancel
 def cancel(existing_flights, email, CONN_STRING):
@@ -119,7 +119,7 @@ def cancel(existing_flights, email, CONN_STRING):
         option = int(option)
     except:
         print("You must enter one of the integers next to the desired option")
-        existing(email, CONN_STRING)
+        return existing(email, CONN_STRING)
     
     # if they select a row number, delete the rows
     if 0 < option <= len(existing_flights):
@@ -131,7 +131,7 @@ def cancel(existing_flights, email, CONN_STRING):
             main.sqlWithNoReturn(deleteFromBookings, CONN_STRING)
         except:
             print("Could not delete your booking")
-            main.menu(email, CONN_STRING)
+            return main.menu(email, CONN_STRING)
         deleteFromTickets = """delete from tickets
         where tno = {0}
         """.format(tno)
@@ -139,17 +139,17 @@ def cancel(existing_flights, email, CONN_STRING):
             main.sqlWithNoReturn(deleteFromTickets, CONN_STRING)
         except:
             print("Could not delete your ticket")
-            main.menu(email, CONN_STRING)
+            return main.menu(email, CONN_STRING)
         print("Successfully deleted booking and ticket")
     # if they select the cancel option again, run cancel again
     elif option == len(existing_flights)+1:
-        cancel(existing_flights, email, CONN_STRING)
+        return cancel(existing_flights, email, CONN_STRING)
     # if they select the menu option, go to the menu
     elif option == len(existing_flights)+2:
-        main.menu(email, CONN_STRING)
+        return main.menu(email, CONN_STRING)
     # if it's not one of the above options, it's invalid, tell them    
     else:
         print("Invalid choice")
-        existing(email, CONN_STRING)    
-    main.menu(email, CONN_STRING)
+        return existing(email, CONN_STRING)    
+    return main.menu(email, CONN_STRING)
 
