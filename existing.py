@@ -151,5 +151,5 @@ def cancel(existing_flights, email, CONN_STRING):
     else:
         print("Invalid choice")
         return existing(email, CONN_STRING)    
-    main.menu(email, CONN_STRING)
+    return main.menu(email, CONN_STRING)
 
